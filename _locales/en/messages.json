@@ -1,0 +1,14 @@
+{
+    "extensionName": {
+        "message": "Lume — Quality of Sources"
+    },
+    "extensionSingleName": {
+        "message": "Lume"
+    },
+    "shortName": {
+        "message": "THF"
+    },
+    "extensionDescription": {
+        "message": "Analyzes Google search results and classifies source quality with AI."
+    }
+}

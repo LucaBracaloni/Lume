@@ -1,0 +1,30 @@
+/* Lume — Injected Styles for Google Search
+   Badge internals live inside Shadow DOM (see SF_BADGE_STYLES in content.js).
+   This file only styles the host element and result-level effects. */
+
+/* Shadow host: just provides spacing in Google's layout */
+.sf-badge-host {
+  display: block;
+  margin: 0 0 10px 0;
+  /* Ensure the host itself has no inherited transform or direction */
+  direction: ltr;
+  unicode-bidi: isolate;
+  writing-mode: horizontal-tb;
+}
+
+/* Dimmed results (ads / low quality) */
+.sf-dimmed {
+  opacity: 0.42;
+  transition: opacity 0.2s;
+}
+
+.sf-dimmed:hover {
+  opacity: 1;
+}
+
+/* Expert result cards get a subtle green outline */
+[data-sf-category="expert"] {
+  outline: 2px solid rgba(19, 115, 51, 0.3) !important;
+  outline-offset: 5px;
+  border-radius: 4px;
+}
