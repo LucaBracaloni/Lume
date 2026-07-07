@@ -23,11 +23,7 @@
     }
   },
   "homepage_url": "https://lucabracaloni.it",
-  "permissions": [
-    "storage",
-    "activeTab",
-    "tabs"
-  ],
+  "permissions": ["storage"],
   "host_permissions": [
     "https://www.google.com/*",
     "https://www.google.it/*",
@@ -35,7 +31,7 @@
     "https://www.google.de/*",
     "https://www.google.fr/*",
     "https://www.google.es/*",
-    "https://api.anthropic.com/*"
+    "http://localhost:3000/*"
   ],
   "content_scripts": [
     {
@@ -53,6 +49,7 @@
     }
   ],
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   }
 }

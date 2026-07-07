@@ -31,8 +31,6 @@
 
 /* Main CSS Styles*/
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
       --bg: #0f0f0f;
       --surface: #1a1a1a;
@@ -49,14 +47,6 @@
       --commercial: #fb923c;
       --ads: #f87171;
       --lowquality: #a8a29e;
-    }
-
-    body {
-      width: 340px;
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 12px;
     }
 
     /* Header */

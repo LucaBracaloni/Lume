@@ -6,6 +6,17 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Fraunces:ital,wght@0,300;0,700;1,300&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Specific styles for popup */
+    body {
+      width: 340px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+    }
+
+  </style>
 </head>
 <body>
   <!-- Header with logo and toggle -->
@@ -30,13 +41,13 @@
   <div class="section">
     <!-- Alert Risk Api box -->
     <div class="wrapper-alert-box">
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
+      <!-- <svg width="10" height="10" viewBox="0 0 24 24" fill="none"
           stroke="#d4a017" stroke-width="2" stroke-linecap="round"
           stroke-linejoin="round" style="flex-shrink: 0;">
           <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
           <line x1="12" y1="9" x2="12" y2="13"/>
           <line x1="12" y1="17" x2="12.01" y2="17"/>
-      </svg>
+      </svg> -->
       <span style="color: var(--alert); font-size: 10px;">
         La chiave API non viene condivisa con nessuno, è salvata solo localmente nel tuo browser e serve per analizzare i risultati di ricerca.
       </span>
@@ -53,7 +64,7 @@
         Viene salvata localmente nel browser.
       </div>
       <button class="btn-save" id="saveBtn">Salva Impostazioni</button>
-      <div class="saved-msg" id="savedMsg">✓ Salvato con successo</div>
+      <div class="saved-msg" id="savedMsg">Salvato con successo</div>
     </div>
 
     <!-- Legend with categories filter -->

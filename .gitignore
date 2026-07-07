@@ -1,0 +1,25 @@
+
+# Compiled output
+/dist
+/tmp
+
+# Node
+**/node_modules
+npm-debug.log
+yarn-error.log
+
+#.env files
+.env
+config/*.env
+
+# IDE and editors
+.idea
+.project
+.classpath
+.c9/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*

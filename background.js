@@ -1,107 +1,124 @@
-// Lume - Background Service Worker
-// Handles extension lifecycle events
+const API_BASE = 'http://127.0.0.1:3000/api/proxy';
 
+//set default settings on install
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   if (reason === 'install') {
-    // Open options page on first install
-    //chrome.tabs.create({ url: 'popup.html' });
-    // Set defaults
     chrome.storage.local.set({ //use local to not sync sensitive API key
-      filterEnabled: true 
+      filterEnabled: true  //default enabled
     });
   }
 });
 
-// Handle API calls from content scripts (avoids CORS issues in MV3)
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message.type !== 'ANALYZE_RESULTS') return false;
+async function callProxy(path, options = {}) {
+  let realPath = path;
+  let realOptions = options;
+  if (typeof path === 'object' && path.path) {
+    realPath = path.path;
+    realOptions = path;
+  }
 
-  const { apiKey, batchPayload } = message;
-
-  fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
+  const response = await fetch(`${API_BASE}/${realPath}`, {
+    method: realOptions.method || 'GET',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods':'POST,PATCH,OPTIONS'
     },
-    body: JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1200,
-      // The prompt instructs the AI to classify search results into quality categories
-      system: `Sei un analizzatore esperto di qualità delle fonti web con conoscenza approfondita dell'ecosistema internet italiano e internazionale.
+    body: realOptions.body ? JSON.stringify(realOptions.body) : undefined
+  });
+
+  if (!response.ok) {
+    throw new Error('Errore nella richiesta');
+  }
+
+  return response.json();
+}
+
+// Listen for messages from content scripts and handle API calls
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('[Lume] Messaggio ricevuto:', message);
+  // check message type and call proxy accordingly
+  if (message.type === 'CALL_API') {
+    console.log('[Lume] CALL_API ricevuto con payload:', message.payload);
+    callProxy(message.payload)
+      .then(data => sendResponse({ success: true, data }))
+      .catch(err => sendResponse({ success: false, error: err.message }));
+    return true; // Keep the message channel open for async response
+  }
+    if (message.type === 'ANALYZE_RESULTS') {
+      const { searchPayload } = message;
+      console.log('[Lume] searchPayload ricevuto dal content script:', searchPayload);
+
+      callProxy({
+        path: 'messages',
+        method: 'POST',
+        body: {
+          model: 'claude-haiku-4-5-20251001',
+          max_tokens: 4000,
+          system: `Sei un analizzatore esperto di qualità delle fonti web (ecosistema editoriale italiano/internazionale).
+
         ## OBIETTIVO
-        Classificare risultati di ricerca per aiutare gli utenti a distinguere contenuti autorevoli da spam, pubblicità e bassa qualità.
+        Classificare risultati di ricerca per distinguere contenuti autorevoli da spam, pubblicità e bassa qualità. Sii severo e coerente.
 
-        ## CATEGORIE (scegli UNA sola per risultato)
+        ## REGOLE DI VALUTAZIONE
+        1. **Dominio**: Valuta l'autorevolezza del publisher. Un TLD .edu/.gov non salva un contenuto palesemente commerciale ospitato lì.
+        2. **Title/Snippet**: Cerca dati verificabili, citazioni, date vs clickbait, superlativi vuoti, linguaggio vago o riassunti automatici.
+        3. **Cautela**: In caso di segnali in conflitto, applica la categoria/score più basso tra le due plausibili.
+        4. **Dati mancanti**: Se title o snippet sono assenti, valuta solo sul dominio riducendo lo score, ma classifica sempre.
 
-        ### Contenuto di valore
-        - **"expert"** — Fonte primaria autorevole: università, istituti di ricerca, enti governativi, ospedali, esperti con credenziali verificabili, giornalismo investigativo premiato, organizzazioni internazionali (WHO, NASA, ISTAT...). Score tipico: 7-10.
-        - **"news"** — Media e giornalismo: quotidiani nazionali/internazionali, riviste di settore, blog con autori identificabili e fonti citate, podcast informativi. Score tipico: 5-8.
-        - **"community"** — Contenuto generato da utenti: Reddit, forum specializzati, Stack Overflow, discussioni con esperti verificabili. Valore dipende dalla qualità della comunità. Score tipico: 4-7.
+        ## CATEGORIE E SCORE TIPICI
+        - "expert" (7-10): Fonti primarie, università, enti di ricerca/governativi, ospedali, paper peer-reviewed.
+        - "news" (5-8): Quotidiani, riviste nazionali/settore, blog con autore identificabile.
+        - "community" (4-7): Reddit, forum specializzati, Stack Overflow, Wikipedia.
+        - "commercial" (3-6): E-commerce, SaaS, servizi, blog aziendali onesti con finalità di vendita.
+        - "ads" (1-4): Pubblicità mascherata, SEO spam, clickbait aggressivo, recensioni affiliate.
+        - "lowquality" (1-3): Content farm, aggregatori, testo generato da AI o tradotto male, pubblicità invasiva.
 
-        ### Contenuto commerciale (neutro)
-        - **"commercial"** — Sito con intento commerciale primario ma legittimo: e-commerce, SaaS, servizi professionali, landing page di prodotto. Non è necessariamente negativo. Score tipico: 3-6.
+        ## OUTPUT OBBLIGATORIO
+        Rispondi ESCLUSIVAMENTE con un array JSON valido, senza markdown (NO \`\`\`json), senza testo prima o dopo. Sii sintetico nel campo "details" (massimo 2 frasi).
 
-        ### Contenuto da evitare
-        - **"ads"** — Pubblicità mascherata, SEO spam, clickbait aggressivo, articoli "sponsored" non dichiarati, siti creati solo per monetizzare traffico, comparatori affiliati senza valore editoriale, titoli sensazionalistici senza sostanza. Score tipico: 1-4.
-        - **"lowquality"** — Aggregatori di contenuti altrui, siti-specchio, contenuto auto-generato da AI senza revisione, traduzioni automatiche di scarsa qualità, siti con pubblicità invasiva e contenuto minimo. Score tipico: 1-3.
+        Formato:
+        [
+          {
+            "url": "example.com"
+            "category": "expert|news|community|commercial|ads|lowquality",
+            "score": 1-10,
+            "confidence": 0-1,
+            "reason": {
+              "summary": "Breve sintesi",
+              "details": "Spiegazione sintetica dei segnali (max 2 frasi)",
+              "positiveSignals": [],
+              "negativeSignals": []
+            },
+            "signals": {
+              "authority": 0-10,
+              "contentQuality": 0-10,
+              "transparency": 0-10,
+              "commercialIntent": 0-10,
+              "spamRisk": 0-10
+            },
+            "source": {
+              "type": "government|academic|media|community|company|unknown",
+              "publisher": "Nome o null",
+              "recognized": true|false
+            },
+            "analysis": {
+              "domainMatch": "strong|medium|weak|unknown",
+              "titleQuality": "neutral|technical|clickbait|unknown",
+              "snippetQuality": "high|medium|low|unknown",
+              "riskFactors": []
+            }
+          }
+        ]`,
+          messages: [{
+            role: 'user',
+            content: `Analizza questi risultati di ricerca:\n${JSON.stringify(searchPayload, null, 2)}`
+          }]
+        }
 
-        ## SEGNALI DA VALUTARE
-        **Domain:** TLD accademici (.edu, .ac.it), governativi (.gov, .europa.eu), organizzazioni (.org), vs domini commerciali generici o TLD sospetti.
-        **Title:** Presenza di clickbait ("Non crederai mai...", "I X migliori..."), linguaggio neutro/tecnico vs emotivo/sensazionalistico.
-        **Snippet:** Cita fonti? Ha autori? Contiene dati/numeri specifici? O è vago e generico?
-        **Dominio noto:** Riconosci il brand come fonte affidabile nel settore?
-
-        ## OUTPUT
-        Rispondi ESCLUSIVAMENTE con un array JSON valido. Zero testo prima o dopo. Stesso numero di oggetti dell'input, nello stesso ordine.
-
-        Formato: [{"category":"expert","reason":"Istituto nazionale di ricerca medica","score":9}, ...]
-
-        Regole:
-        - "reason": max 7 parole, in italiano, specifica (NON generica come "fonte affidabile")
-        - "score": intero 1-10 basato su autorevolezza, accuratezza attesa, trasparenza editoriale
-        - In caso di ambiguità tra due categorie, scegli quella con score più basso (principio di cautela)`,
-      messages: [{
-        role: 'user',
-        content: `Analizza questi risultati di ricerca:\n${JSON.stringify(batchPayload, null, 2)}`
-      }]
-    })
-  })
-    .then(res => res.json())
-    .then(data => {
-      // console.log('[Lume BG] Risposta API completa:', JSON.stringify(data).substring(0, 500));
-
-      // Check for API-level errors
-      if (data.error) {
-        console.error('[Lume BG] Errore API:', data.error.type, data.error.message);
-        sendResponse({ ok: false, error: `API error: ${data.error.type} - ${data.error.message}` });
-        return;
-      }
-
-      const text = data.content?.[0]?.text;
-      if (!text) {
-        console.error('[Lume BG] Nessun testo nella risposta:', JSON.stringify(data));
-        sendResponse({ ok: false, error: 'No text in API response', raw: JSON.stringify(data) });
-        return;
-      }
-
-      // console.log('[Lume BG] Testo risposta:', text.substring(0, 300));
-      try {
-        const clean = text.replaceAll(/```json|```/g, '').trim();
-        const analyses = JSON.parse(clean);
-        // console.log('[Lume BG] Analisi parsate:', analyses.length);
-        sendResponse({ ok: true, analyses });
-      } catch (e) {
-        console.error('[Lume BG] Errore parsing JSON:', e.message, '| Raw:', text.substring(0, 200));
-        sendResponse({ ok: false, error: 'JSON parse error: ' + e.message, raw: text });
-      }
-    })
-    .catch(err => {
-      console.error('[Lume BG] Fetch error:', err.message);
-      sendResponse({ ok: false, error: err.message });
-    });
-
-  return true; // keep message channel open for async response
+      })
+        .then(data => sendResponse({ ok: true, analyses: data }))
+        .catch(err => sendResponse({ ok: false, error: err.message }));
+      return true;
+    }
 });
