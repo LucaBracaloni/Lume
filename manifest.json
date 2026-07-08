@@ -31,7 +31,8 @@
     "https://www.google.de/*",
     "https://www.google.fr/*",
     "https://www.google.es/*",
-    "http://localhost:3000/*"
+    "http://localhost:3000/*",
+    "https://lume-proxy-server.onrender.com/*"
   ],
   "content_scripts": [
     {

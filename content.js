@@ -110,12 +110,8 @@ function createShadowBadge(container, h3) {
 }
 
 (async () => {
-  const { apiKey, filterEnabled, hiddenCategories } = await chrome.storage.local.get(['apiKey', 'filterEnabled', 'hiddenCategories']);
+  const { filterEnabled, hiddenCategories } = await chrome.storage.local.get(['filterEnabled', 'hiddenCategories']);
 
-  if (!apiKey) {
-    console.warn('[Lume] Nessuna API key trovata. Configurala nel popup.');
-    return;
-  }
   if (filterEnabled === false) {
     console.warn('[Lume] Estensione disattivata dal popup.');
     return;
@@ -155,7 +151,7 @@ function createShadowBadge(container, h3) {
       if (!href.startsWith('http')) continue;
       result.push({ container, h3, linkEl, href });
     }
-    console.log('[Lume Content] h3 trovati:', h3s.length, '| container trovati:', containers.length, '| risultati validi:', result.length);
+    // console.log('[Lume Content] h3 trovati:', h3s.length, '| container trovati:', containers.length, '| risultati validi:', result.length);
     return result;
   };
 
@@ -225,17 +221,16 @@ function createShadowBadge(container, h3) {
 
   // Call API via background service worker (avoids CORS in MV3)
   try {
-    console.log('[Lume Content] resultData:', resultData);
+    // console.log('[Lume Content] resultData:', resultData);
     const searchPayload = resultData.map(r => ({
       title: r.title,
       domain: r.domain,
       snippet: r.snippet
     }));
-    console.log('[Lume Content] Invio ANALYZE_RESULTS:', searchPayload);
+    // console.log('[Lume Content] Invio ANALYZE_RESULTS:', searchPayload);
 
     const result = await chrome.runtime.sendMessage({
       type: 'ANALYZE_RESULTS',
-      apiKey,
       searchPayload
     });
 

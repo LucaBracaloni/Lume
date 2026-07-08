@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { forwardRequest } = require('../service/proxyService');
 
-// Catch-all
+//catch request
 router.all('/:path(.*)?', async (req, res) => {
     try {
         const path = req.params.path || '';
@@ -17,6 +17,7 @@ router.all('/:path(.*)?', async (req, res) => {
             body: req.body,
             query: req.query
         });
+        
         res.status(result.status).json(result.data);
     } catch (error) {
         console.error('Proxy Error:', error);

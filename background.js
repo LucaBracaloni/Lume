@@ -1,4 +1,7 @@
-const API_BASE = 'http://127.0.0.1:3000/api/proxy';
+const IS_PRODUCTION = true;
+const API_BASE = IS_PRODUCTION 
+  ? 'https://lume-proxy-server.onrender.com/api/proxy' 
+  : 'http://127.0.0.1:3000/api/proxy';
 
 //set default settings on install
 chrome.runtime.onInstalled.addListener(({ reason }) => {
@@ -22,7 +25,8 @@ async function callProxy(path, options = {}) {
     headers: {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods':'POST,PATCH,OPTIONS'
+      'Access-Control-Allow-Methods':'POST,PATCH,OPTIONS',
+      'X-Lume-Client': 'extension-v1.0'
     },
     body: realOptions.body ? JSON.stringify(realOptions.body) : undefined
   });
@@ -53,8 +57,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         path: 'messages',
         method: 'POST',
         body: {
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 4000,
+          model: 'gemini',
+          //prompt 
           system: `Sei un analizzatore esperto di qualità delle fonti web (ecosistema editoriale italiano/internazionale).
 
         ## OBIETTIVO
