@@ -1,14 +1,14 @@
 {
     "extensionName": {
-        "message": "Lume — Quality of Sources"
+        "message": "Lume - Analisi Qualità Fonti e AI Research Assistant"
     },
     "extensionSingleName": {
         "message": "Lume"
     },
     "shortName": {
-        "message": "THF"
+        "message": "Lume"
     },
     "extensionDescription": {
-        "message": "Analyzes Google search results and classifies source quality with AI."
+        "message": "Verifica in tempo reale l'attendibilità dei risultati di ricerca. Identifica spam, clickbait e fonti di bassa qualità con un click."
     }
 }

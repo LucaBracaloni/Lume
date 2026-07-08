@@ -331,3 +331,9 @@
       opacity: 0.35;
       border-color: transparent;
     }
+
+    .privacy-policy {
+      margin-top: 10px; 
+      font-size: 10px; 
+      text-align: center;
+    }
