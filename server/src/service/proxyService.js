@@ -111,19 +111,18 @@ const executeGeminiCall = async ({ body }) => {
         console.log("[ProxyService] Invio a Gemini...");
         const result = await model.generateContent(fullPrompt);
         let jsonText = result.response.text().trim();
-        const start = jsonText.search(/[\[{]/);
-        const end = Math.max(
-            jsonText.lastIndexOf(']'),
-            jsonText.lastIndexOf('}')
-        );
-
-        if (start === -1 || end === -1) {
-            throw new Error("Nessun JSON trovato nella risposta Gemini");
+        jsonText = jsonText.replace(/```json/g, '').replace(/```/g, '');
+        
+        if (jsonText.startsWith('[')) {
+            const match = jsonText.match(/\[[\s\S]*\]/);
+            jsonText = match ? match[0] : jsonText;
+        } 
+        else if (jsonText.startsWith('{')) {
+            const match = jsonText.match(/\{[\s\S]*\}/);
+            jsonText = match ? match[0] : jsonText;
         }
 
-        jsonText = jsonText.substring(start, end + 1);
-        console.log("[ProxyService] Risposta ricevuta.");
-
+        console.log("[ProxyService] Risposta ricevuta e parsata.");
         return {
             status: 200,
             data: JSON.parse(jsonText)
