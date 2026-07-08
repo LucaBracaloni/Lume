@@ -1,18 +1,19 @@
 # Lume - Google Extension
 
-[![Visual Studio](https://img.shields.io/badge/Visual%20Studio-5C2D91?style=for-the-badge&logo=visualstudio&logoColor=white)](#)
-![License](https://img.shields.io/badge/License-All_Rights_Reserved-red?style=for-the-badge)
+![Editor](https://img.shields.io/badge/Editor-VS_Code-blue?style=for-the-badge&logo=visual-studio-code&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 ![Manifest](https://img.shields.io/badge/Manifest-V3-green?style=for-the-badge)
-![AI](https://img.shields.io/badge/AI-Anthropic_Claude-blue?style=for-the-badge&logo=anthropic&logoColor=white)
+![AI](https://img.shields.io/badge/AI-Google_Gemini-blue?style=for-the-badge&logo=google&logoColor=white)
+![DataBase](https://img.shields.io/badge/DB-MongoDB_Atlas-green?style=for-the-badge&logo=mongodb&logoColor=white)
 ![Privacy](https://img.shields.io/badge/Privacy-Zero_Knowledge-brightgreen?style=for-the-badge)
 
 It is a Chrome extension that analyzes Google search results in real time using AI and rates the quality of each source with a colored visual badge. The goal is to help users immediately distinguish authoritative sources from low-quality content, SEO spam, or disguised advertising.
 
 ## Version
-> 1.1.0 beta
+> 1.2.0 beta
 
 ## License
-**All rights reserved**
+**MIT License - Copyright (c) 2026 Luca Bracaloni**
 
 
 ## Contents
@@ -20,14 +21,14 @@ It is a Chrome extension that analyzes Google search results in real time using 
 - [Features](#Features)
 - [Requirements](#Requirements)
 - [Manifest V3 Permission](#Manifest-v3-permission)
-- [API Anthropic](#Api-anthropic)
+- [API Google Gemini](#Api-gemini)
 - [Storage & Persistence](#Storage-e-persistence)
 - [Contact](#Contact)
 
 
 ## Technologies used
 - **Engine**: Chrome Extensions API (Manifest V3)
-- **Intelligence**: Anthropic Claude (Haiku Model)
+- **Intelligence**: Google Gemini API (gemini-3.1-flash-lite)
 - **Local Storage**: chrome.storage.local (Privacy-first, local-only storage)
 - **Persistance Storage**: MongoDB Atlas
 - **Version Control**: Github
@@ -36,7 +37,7 @@ It is a Chrome extension that analyzes Google search results in real time using 
 ## Features
 - AI-Powered Analysis - Scans Google Search results in real-time to identify content quality
 - Intelligent Badging
-- Efficiency Optimized - Uses the high-speed Claude Haiku model to ensure zero lag during browsing.
+- Efficiency Optimized - Uses the high-speed Free Gemini gemini-3.1-flash-lite model to ensure zero lag during browsing.
 
 
 ## Requirements
@@ -44,7 +45,7 @@ It is a Chrome extension that analyzes Google search results in real time using 
 | Tool              | Version         |
 |-------------------|-----------------|
 | Chrome / Edge     | Latest stable   |
-| Anthropic API Key | /               |
+| GEMINI API Key |  /                 |
 
 
 ## Manifest V3 Permission
@@ -53,7 +54,7 @@ It is a Chrome extension that analyzes Google search results in real time using 
 
 | Permission     | Usage                                                                            |
 |--------------|-------------------------------------------------------------------------------------|
-| `storage`    | `chrome.storage.local` to persist `apiKey`, `filterEnabled`, `hiddenCategories` |
+| `storage`    | `chrome.storage.local` to persist `filterEnabled`, `hiddenCategories` |
 | `activeTab`  | Access to the current tab for the popup                                              |
 | `tabs`       | `chrome.tabs.query` in the popup to send messages to the active content script         |
 
@@ -62,7 +63,7 @@ It is a Chrome extension that analyzes Google search results in real time using 
 | Pattern                                      | Reason                                |
 |----------------------------------------------|---------------------------------------|
 | `https://www.google.{com,it,co.uk,de,fr,es}/*`| Inject content script + styles.css |
-| `https://api.anthropic.com/*`                | Fetch calls from the service worker     |
+| `https://generativelanguage.googleapis.com/*` | Fetch calls from the service worker  |
 
 
 ## API Anthropic
@@ -70,43 +71,25 @@ It is a Chrome extension that analyzes Google search results in real time using 
 ### Endpoint
 
 ```
-POST https://api.anthropic.com/v1/messages
+POST https://generativelanguage.googleapis.com/messages
 ```
 
 ### Headers
 
 ```
-Content-Type: application/json
-x-api-key: <apikey>
-anthropic-version: 2023-06-01
-anthropic-dangerous-direct-browser-access: true
+  'Content-Type': 'application/json',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods':'POST,PATCH,OPTIONS',
+  'X-Lume-Client': 'extension-v1.0'
 ```
-
-The `anthropic-dangerous-direct-browser-access` header is required by Anthropic to authorize direct calls from the browser (this is necessary because the service worker is not a traditional server).
 
 ### Model LLM
 
 ```
-claude-haiku-4-5-20251001
+gemini-3.1-flash-lite
 ```
 
-Haiku is Anthropic's fastest and most cost-effective model. It is suitable for batch classification tasks where latency is noticeable to the user.
-
-### Payload
-
-```json
-{
-  "model": "claude-haiku-4-5-20251001",
-  "max_tokens": 1200,
-  "system": "...",
-  "messages": [{
-    "role": "user",
-    "content": "Analyze these search results:\n[{\"title\":\"...\",\"domain\":\"...\",\"snippet\":\"...\"}]"
-  }]
-}
-```
-
-Each Google search uses about 1–2 API calls to Claude. With Anthropic’s pay-per-use plan, the cost is just a few cents for hundreds of queries.
+Gemini 3.1 Flash-Lite is a low-latency, cost-effective multimodal model optimized for high-frequency, lightweight tasks. The model supports text, image, video, audio, and PDF inputs, and is designed for high-volume agentic workflows, simple data extraction, and applications where latency and API cost are the primary constraints.
 
 
 ## Storage & Persistence
@@ -115,7 +98,6 @@ All settings use `chrome.storage.local` (synced across Chrome devices linked to 
 
 | Key | Type | Default | Description |
 |--------|------|---------|-------------|
-| `apiKey` | `string` | — | User's Anthropic API key |
 | `filterEnabled` | `boolean` | `true` | Global toggle extension |
 | `hiddenCategories` | `string[]` | `[]` | Array for category ID to hidden |
 
