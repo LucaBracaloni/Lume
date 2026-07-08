@@ -16,22 +16,21 @@
     "default_title": "__MSG_extensionSingleName__",
     "default_popup": "popup.html",
     "default_icon": {
-    "16": "icons/icon16.png",
-    "32": "icons/icon32.png",
-    "48": "icons/icon48.png",
-    "128": "icons/icon128.png"
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
     }
   },
   "homepage_url": "https://lucabracaloni.it",
   "permissions": ["storage"],
   "host_permissions": [
-    "https://www.google.com/*",
-    "https://www.google.it/*",
-    "https://www.google.co.uk/*",
-    "https://www.google.de/*",
-    "https://www.google.fr/*",
-    "https://www.google.es/*",
-    "http://localhost:3000/*",
+    "https://www.google.com/search*",
+    "https://www.google.it/search*",
+    "https://www.google.co.uk/search*",
+    "https://www.google.de/search*",
+    "https://www.google.fr/search*",
+    "https://www.google.es/search*",
     "https://lume-proxy-server.onrender.com/*"
   ],
   "content_scripts": [
