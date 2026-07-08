@@ -5,10 +5,18 @@ const logger = require('./middleware/logger');
 const rateLimiter = require('./middleware/rateLimiter');
 const proxyRoutes = require('./routes/proxyRoutes');
 const mongoose = require('mongoose');
+require('dotenv').config();
 const app = express();
 
+const dbUri = process.env.DB_CONNECTION_URL;
+
+if(!dbUri){
+    console.error("DB_CONNECTION_URL non è definita nelle variabili d'ambiente");
+    process.exit(1);
+}
+
 // Connection to Atlas MongoDB
-mongoose.connect(process.env.DB_CONNECTION_URL)
+mongoose.connect(dbUri)
     .then(() => console.log("Connessione Effettuata a MongoDB Atlas"))
     .catch(err => console.error("Errore durante la connessione a MongoDB Atlas", err))
 
